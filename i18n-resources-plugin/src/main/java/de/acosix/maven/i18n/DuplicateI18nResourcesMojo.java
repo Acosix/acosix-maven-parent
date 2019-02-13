@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,6 +46,12 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
     private static final String PROPERTIES_EXTENSION = ".properties";
 
     protected static final List<String> DEFAULT_INCLUDES = Collections.unmodifiableList(Arrays.asList("**/*.properties"));
+
+    /**
+     * Specifies that execution of this mojo should be skipped.
+     */
+    @Parameter(defaultValue = "${i18n.skip.duplicate}")
+    protected boolean skip;
 
     /**
      * Specifies the source directory used for looking up resources bundles to duplicate as well as checking if a specific resource bundle
@@ -92,7 +99,7 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
      * @parameter
      */
     @Parameter(required = true)
-    protected List<String> targetLocales;
+    protected List<String> copyForLocales;
 
     /**
      * {@inheritDoc}
@@ -100,66 +107,83 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException
     {
-        final List<String> propertyFileNames = this.getPropertyFileNamesToProcess();
-        for (final String propertyFileName : propertyFileNames)
+        if (!this.skip)
         {
-            if (propertyFileName.endsWith(PROPERTIES_EXTENSION))
+            final Collection<String> propertyFileNames = this.getPropertyFileNamesToProcess();
+            if (!propertyFileNames.isEmpty())
             {
-                final String fileName = propertyFileName.indexOf('/') != -1
-                        ? propertyFileName.substring(propertyFileName.lastIndexOf('/') + 1)
-                        : propertyFileName;
-                final String relativePath = propertyFileName.indexOf('/') != -1
-                        ? propertyFileName.substring(0, propertyFileName.lastIndexOf('/') + 1)
-                        : "";
-                final String fileBaseName = fileName.substring(0, fileName.length() - PROPERTIES_EXTENSION.length());
-
-                final StringBuilder localeBuilder = new StringBuilder();
-                String resourceName = fileBaseName;
-                while (resourceName.lastIndexOf('_') == resourceName.length() - 3 && localeBuilder.length() < 8)
+                for (final String propertyFileName : propertyFileNames)
                 {
-                    final String fragment = resourceName.substring(resourceName.lastIndexOf('_') + 1);
-                    ;
-                    resourceName = resourceName.substring(0, resourceName.lastIndexOf('_'));
-                    if (localeBuilder.length() != 0)
+                    if (propertyFileName.endsWith(PROPERTIES_EXTENSION))
                     {
-                        localeBuilder.insert(0, '_');
+                        this.checkResourceBundleAndDuplicateIfNecessary(propertyFileName);
                     }
-                    localeBuilder.insert(0, fragment);
                 }
+            }
+            else
+            {
+                this.getLog().info("Found no resource bundles to process");
+            }
+        }
+        else
+        {
+            this.getLog().info("Skipping resource bundle duplication");
+        }
+    }
 
-                if ((this.sourceLocale == null && localeBuilder.length() == 0)
-                        || (this.sourceLocale != null && this.sourceLocale.equals(localeBuilder.toString())))
+    protected void checkResourceBundleAndDuplicateIfNecessary(final String propertyFileName) throws MojoExecutionException
+    {
+        final String fileName = propertyFileName.indexOf('/') != -1 ? propertyFileName.substring(propertyFileName.lastIndexOf('/') + 1)
+                : propertyFileName;
+        final String relativePath = propertyFileName.indexOf('/') != -1
+                ? propertyFileName.substring(0, propertyFileName.lastIndexOf('/') + 1)
+                : "";
+        final String fileBaseName = fileName.substring(0, fileName.length() - PROPERTIES_EXTENSION.length());
+
+        final StringBuilder localeBuilder = new StringBuilder();
+        String resourceName = fileBaseName;
+        while (resourceName.lastIndexOf('_') == resourceName.length() - 3 && localeBuilder.length() < 8)
+        {
+            final String fragment = resourceName.substring(resourceName.lastIndexOf('_') + 1);
+            resourceName = resourceName.substring(0, resourceName.lastIndexOf('_'));
+            if (localeBuilder.length() != 0)
+            {
+                localeBuilder.insert(0, '_');
+            }
+            localeBuilder.insert(0, fragment);
+        }
+
+        if ((this.sourceLocale == null && localeBuilder.length() == 0)
+                || (this.sourceLocale != null && this.sourceLocale.equals(localeBuilder.toString())))
+        {
+            for (final String targetLocale : this.copyForLocales)
+            {
+                final String targetResourceName = targetLocale.trim().length() > 0
+                        ? MessageFormat.format("{0}_{1}", resourceName, targetLocale)
+                        : resourceName;
+                final String targetFileName = targetResourceName + PROPERTIES_EXTENSION;
+                final String targetPropertyFileName = relativePath + targetFileName;
+
+                // do not duplicate if there is actually an explicit source file
+                final File sourceCandidate = new File(this.sourceDirectory, targetPropertyFileName);
+                if (!sourceCandidate.exists())
                 {
-                    for (final String targetLocale : this.targetLocales)
+                    final File target = new File(this.outputDirectory, targetPropertyFileName);
+                    target.getParentFile().mkdirs();
+                    try
                     {
-                        final String targetResourceName = targetLocale.trim().length() > 0
-                                ? MessageFormat.format("{0}_{1}", resourceName, targetLocale)
-                                : resourceName;
-                        final String targetFileName = targetResourceName + PROPERTIES_EXTENSION;
-                        final String targetPropertyFileName = relativePath + targetFileName;
-
-                        // do not duplicate if there is actually an explicit source file
-                        final File sourceCandidate = new File(this.sourceDirectory, targetPropertyFileName);
-                        if (!sourceCandidate.exists())
-                        {
-                            final File target = new File(this.outputDirectory, targetPropertyFileName);
-                            target.getParentFile().mkdirs();
-                            try
-                            {
-                                FileUtils.copyFile(new File(this.sourceDirectory, propertyFileName), target);
-                            }
-                            catch (final IOException ioEx)
-                            {
-                                throw new MojoExecutionException("Error copying resources", ioEx);
-                            }
-                        }
+                        FileUtils.copyFile(new File(this.sourceDirectory, propertyFileName), target);
+                    }
+                    catch (final IOException ioEx)
+                    {
+                        throw new MojoExecutionException("Error copying resources", ioEx);
                     }
                 }
             }
         }
     }
 
-    protected List<String> getPropertyFileNamesToProcess()
+    protected Collection<String> getPropertyFileNamesToProcess()
     {
         final List<String> propertyFileNames = new ArrayList<>();
 
