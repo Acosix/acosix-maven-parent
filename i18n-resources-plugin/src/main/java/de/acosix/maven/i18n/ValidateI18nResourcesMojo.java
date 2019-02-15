@@ -206,51 +206,54 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
 
         for (final File directory : this.validationDirectories)
         {
-            scanner.setBasedir(directory);
-            scanner.scan();
-
-            for (final String includedFile : scanner.getIncludedFiles())
+            if (directory.exists())
             {
-                if (includedFile.endsWith(PROPERTIES_EXTENSION))
+                scanner.setBasedir(directory);
+                scanner.scan();
+
+                for (final String includedFile : scanner.getIncludedFiles())
                 {
-                    final String fileName = includedFile.indexOf('/') != -1 ? includedFile.substring(includedFile.lastIndexOf('/') + 1)
-                            : includedFile;
-                    final String relativeBasePath = includedFile.indexOf('/') != -1
-                            ? includedFile.substring(0, includedFile.lastIndexOf('/') + 1)
-                            : "";
-                    final String fileBaseName = fileName.substring(0, fileName.length() - PROPERTIES_EXTENSION.length());
-
-                    final StringBuilder localeBuilder = new StringBuilder(16);
-                    String resourceName = fileBaseName;
-                    while (resourceName.lastIndexOf('_') == resourceName.length() - 3 && localeBuilder.length() < 8)
+                    if (includedFile.endsWith(PROPERTIES_EXTENSION))
                     {
-                        final String fragment = resourceName.substring(resourceName.lastIndexOf('_') + 1);
-                        resourceName = resourceName.substring(0, resourceName.lastIndexOf('_'));
-                        if (localeBuilder.length() != 0)
+                        final String fileName = includedFile.indexOf('/') != -1 ? includedFile.substring(includedFile.lastIndexOf('/') + 1)
+                                : includedFile;
+                        final String relativeBasePath = includedFile.indexOf('/') != -1
+                                ? includedFile.substring(0, includedFile.lastIndexOf('/') + 1)
+                                : "";
+                        final String fileBaseName = fileName.substring(0, fileName.length() - PROPERTIES_EXTENSION.length());
+
+                        final StringBuilder localeBuilder = new StringBuilder(16);
+                        String resourceName = fileBaseName;
+                        while (resourceName.lastIndexOf('_') == resourceName.length() - 3 && localeBuilder.length() < 8)
                         {
-                            localeBuilder.insert(0, '-');
+                            final String fragment = resourceName.substring(resourceName.lastIndexOf('_') + 1);
+                            resourceName = resourceName.substring(0, resourceName.lastIndexOf('_'));
+                            if (localeBuilder.length() != 0)
+                            {
+                                localeBuilder.insert(0, '-');
+                            }
+                            localeBuilder.insert(0, fragment);
                         }
-                        localeBuilder.insert(0, fragment);
-                    }
-                    final String basePath = relativeBasePath + resourceName;
+                        final String basePath = relativeBasePath + resourceName;
 
-                    Locale locale;
-                    if (localeBuilder.length() > 0)
-                    {
-                        locale = Locale.forLanguageTag(localeBuilder.toString());
-                    }
-                    else
-                    {
-                        locale = Locale.ROOT;
-                    }
+                        Locale locale;
+                        if (localeBuilder.length() > 0)
+                        {
+                            locale = Locale.forLanguageTag(localeBuilder.toString());
+                        }
+                        else
+                        {
+                            locale = Locale.ROOT;
+                        }
 
-                    Map<String, File> filesByBasePath = filesByBasePathByLocale.get(locale);
-                    if (filesByBasePath == null)
-                    {
-                        filesByBasePath = new HashMap<>();
-                        filesByBasePathByLocale.put(locale, filesByBasePath);
+                        Map<String, File> filesByBasePath = filesByBasePathByLocale.get(locale);
+                        if (filesByBasePath == null)
+                        {
+                            filesByBasePath = new HashMap<>();
+                            filesByBasePathByLocale.put(locale, filesByBasePath);
+                        }
+                        filesByBasePath.put(basePath, new File(directory, includedFile));
                     }
-                    filesByBasePath.put(basePath, new File(directory, includedFile));
                 }
             }
         }

@@ -186,30 +186,32 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
     protected Collection<String> getPropertyFileNamesToProcess()
     {
         final List<String> propertyFileNames = new ArrayList<>();
-
-        final DirectoryScanner scanner = new DirectoryScanner();
-        scanner.setBasedir(this.sourceDirectory);
-
-        if (this.includes != null)
+        if (this.sourceDirectory.exists())
         {
-            scanner.setIncludes(this.includes.toArray(new String[0]));
-        }
-        else
-        {
-            scanner.setIncludes(DEFAULT_INCLUDES.toArray(new String[0]));
-        }
+            final DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(this.sourceDirectory);
 
-        if (this.excludes != null)
-        {
-            scanner.setExcludes(this.excludes.toArray(new String[0]));
-        }
+            if (this.includes != null)
+            {
+                scanner.setIncludes(this.includes.toArray(new String[0]));
+            }
+            else
+            {
+                scanner.setIncludes(DEFAULT_INCLUDES.toArray(new String[0]));
+            }
 
-        scanner.addDefaultExcludes();
-        scanner.scan();
+            if (this.excludes != null)
+            {
+                scanner.setExcludes(this.excludes.toArray(new String[0]));
+            }
 
-        for (final String includedFile : scanner.getIncludedFiles())
-        {
-            propertyFileNames.add(includedFile);
+            scanner.addDefaultExcludes();
+            scanner.scan();
+
+            for (final String includedFile : scanner.getIncludedFiles())
+            {
+                propertyFileNames.add(includedFile);
+            }
         }
 
         return propertyFileNames;
