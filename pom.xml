@@ -72,6 +72,7 @@
         <maven.forbiddenapis.version>2.2</maven.forbiddenapis.version>
         <maven.findbugs.version>3.0.4</maven.findbugs.version>
         <maven.surefire.version>2.21.0</maven.surefire.version>
+        <maven.invoker.version>3.2.0</maven.invoker.version>
 
         <maven.oss.staging.version>1.6.7</maven.oss.staging.version>
 
@@ -116,6 +117,17 @@
     <modules>
         <module>i18n-resources-plugin</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <!-- TODO: Proper setup of reporting configuration -->
 
@@ -229,6 +241,25 @@
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
+                </plugin>
+
+                <plugin>
+                    <artifactId>maven-invoker-plugin</artifactId>
+                    <version>${maven.invoker.version}</version>
+                    <configuration>
+                        <projectsDirectory>src/test/pom</projectsDirectory>
+                        <pomIncludes>
+                            <pomInclude>**/pom.xml</pomInclude>
+                        </pomIncludes>
+                        <postBuildHookScript>verify</postBuildHookScript>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->

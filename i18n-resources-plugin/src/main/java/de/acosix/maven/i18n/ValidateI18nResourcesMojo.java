@@ -15,10 +15,13 @@
  */
 package de.acosix.maven.i18n;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +36,8 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -141,6 +146,23 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
      */
     @Parameter(defaultValue = "false")
     protected boolean failOnInconsistentMessageKeys;
+
+    /**
+     * Specifies if the presence of encoding issues (non-ASCII characters / incorrect unicode escape sequences) in resource bundles should
+     * be reported.
+     *
+     * @parameter
+     */
+    @Parameter(defaultValue = "true")
+    protected boolean reportEncodingIssues;
+
+    /**
+     * Specifies if the presence of encoding issues (non-ASCII characters / incorrect unicode escape sequences) in resource bundles should
+     * be considered an error and not allow the build to
+     * proceed after the validation has completed.
+     */
+    @Parameter(defaultValue = "true")
+    protected boolean failOnEncodingIssues;
 
     /**
      * {@inheritDoc}
@@ -291,28 +313,6 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
         }
     }
 
-    protected void validateResourceBundles(final Collection<Locale> allLocales, final Collection<String> allBasePaths,
-            final Map<Locale, Map<String, File>> filesByBasePathAndLocale, final AtomicInteger missingLocaleBundles,
-            final AtomicInteger inconsistentMessageKeys) throws MojoExecutionException, MojoFailureException
-    {
-        final Map<Locale, String> localeLabels = new HashMap<>();
-        for (final Locale locale : allLocales)
-        {
-            final String localeLabel = (locale.equals(Locale.ROOT) ? "the default locale" : locale.toString());
-            localeLabels.put(locale, localeLabel);
-        }
-
-        for (final String basePath : allBasePaths)
-        {
-            final Map<Locale, ResourceBundle> bundles = this.loadBundlesForBasePath(basePath, allLocales, filesByBasePathAndLocale,
-                    missingLocaleBundles, localeLabels);
-
-            this.validateResourceBundleConsistency(basePath, bundles, inconsistentMessageKeys, localeLabels);
-
-            // TODO Validate characters (non ASCCI as unicode escape sequences) and actual content (identical vs different)
-        }
-    }
-
     protected void validateRequiredLocales(final Collection<String> allBasePaths, final List<Locale> localesToValidate,
             final Map<Locale, Map<String, File>> filesByBasePathAndLocale) throws MojoFailureException
     {
@@ -357,6 +357,111 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
         if (fail)
         {
             throw new MojoFailureException("Some of the required locales are missing specific resource bundles");
+        }
+    }
+
+    protected void validateResourceBundles(final Collection<Locale> allLocales, final Collection<String> allBasePaths,
+            final Map<Locale, Map<String, File>> filesByBasePathAndLocale, final AtomicInteger missingLocaleBundles,
+            final AtomicInteger inconsistentMessageKeys) throws MojoExecutionException, MojoFailureException
+    {
+        final Map<Locale, String> localeLabels = new HashMap<>();
+        for (final Locale locale : allLocales)
+        {
+            final String localeLabel = (locale.equals(Locale.ROOT) ? "the default locale" : locale.toString());
+            localeLabels.put(locale, localeLabel);
+        }
+
+        if (this.reportEncodingIssues || this.failOnEncodingIssues)
+        {
+            final AtomicInteger encodingIssues = new AtomicInteger(0);
+
+            this.validateResourceBundleEncoding(allLocales, filesByBasePathAndLocale, encodingIssues, localeLabels);
+            if (this.failOnEncodingIssues && encodingIssues.get() > 0)
+            {
+                throw new MojoFailureException("Some resource bundles contain non-ASCII characters or incorrect unicode escape sequences");
+            }
+        }
+
+        for (final String basePath : allBasePaths)
+        {
+
+            final Map<Locale, ResourceBundle> bundles = this.loadBundlesForBasePath(basePath, allLocales, filesByBasePathAndLocale,
+                    missingLocaleBundles, localeLabels);
+
+            if (this.reportInconsistentMessageKeys || this.failOnInconsistentMessageKeys)
+            {
+                this.validateResourceBundleConsistency(basePath, bundles, inconsistentMessageKeys, localeLabels);
+            }
+        }
+    }
+
+    protected void validateResourceBundleEncoding(final Collection<Locale> allLocales,
+            final Map<Locale, Map<String, File>> filesByBasePathAndLocale, final AtomicInteger encodingIssues,
+            final Map<Locale, String> localeLabels) throws MojoExecutionException
+    {
+        final Pattern nonAsciiCharacterPattern = Pattern.compile("[^\\x00-\\x7F]");
+        final Pattern invalidUnicodeEscapeSequencePattern = Pattern.compile("\\\\u[^0-9a-fA-F]{1,4}");
+
+        for (final Locale locale : allLocales)
+        {
+            final Map<String, File> filesByBasePath = filesByBasePathAndLocale.get(locale);
+            for (final Entry<String, File> filesByBasePathEntry : filesByBasePath.entrySet())
+            {
+                final String basePath = filesByBasePathEntry.getKey();
+                final File file = filesByBasePathEntry.getValue();
+
+                // need to custom load the file contents as regular Properties / ResourceBundle already decode escape sequences
+                try (BufferedReader bf = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)))
+                {
+                    final PropertiesLineReader lineReader = new PropertiesLineReader(bf);
+
+                    int logicalLineNo = 0;
+                    String logicalLine;
+                    while ((logicalLine = lineReader.readLine()) != null)
+                    {
+                        logicalLineNo++;
+
+                        final Matcher nonAsciiMatcher = nonAsciiCharacterPattern.matcher(logicalLine);
+                        while (nonAsciiMatcher.find())
+                        {
+                            encodingIssues.incrementAndGet();
+
+                            final String logMessage = basePath + " for locale " + localeLabels.get(locale)
+                                    + " contains non-ASCII character " + nonAsciiMatcher.group() + " in (logical) line no " + logicalLineNo;
+                            if (this.failOnEncodingIssues)
+                            {
+                                this.getLog().error(logMessage);
+                            }
+                            else if (this.reportEncodingIssues)
+                            {
+                                this.getLog().warn(logMessage);
+                            }
+                        }
+
+                        final Matcher invalidUnicodeEscapeSequenceMatcher = invalidUnicodeEscapeSequencePattern.matcher(logicalLine);
+                        while (invalidUnicodeEscapeSequenceMatcher.find())
+                        {
+                            encodingIssues.incrementAndGet();
+
+                            final String logMessage = basePath + " for locale " + localeLabels.get(locale)
+                                    + " contains ivalid unicode escape sequence " + invalidUnicodeEscapeSequenceMatcher.group()
+                                    + " in (logical) line no " + logicalLineNo;
+                            if (this.failOnEncodingIssues)
+                            {
+                                this.getLog().error(logMessage);
+                            }
+                            else if (this.reportEncodingIssues)
+                            {
+                                this.getLog().warn(logMessage);
+                            }
+                        }
+                    }
+                }
+                catch (final IOException ioex)
+                {
+                    throw new MojoExecutionException("Failed to load file " + file, ioex);
+                }
+            }
         }
     }
 
@@ -451,11 +556,14 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                 {
                     if (iaex.getMessage().contains("Malformed \\uxxxx encoding"))
                     {
-                        this.getLog().error("Resource bundle file " + file + " contains a malformed unicode escape sequence");
-                        throw new MojoExecutionException(
-                                "Failed to load resource bundle " + basePath + " for " + localeLabels.get(locale) + " from " + file, iaex);
+                        // we have separate report/fail options for encoding issues
+                        this.getLog().debug("Resource bundle file " + file
+                                + " contains a malformed unicode escape sequence and cannot be loaded for validation");
                     }
-                    throw iaex;
+                    else
+                    {
+                        throw iaex;
+                    }
                 }
             }
             else
@@ -467,7 +575,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                 {
                     this.getLog().error(message);
                 }
-                else
+                else if (this.reportMissingLocaleBundles)
                 {
                     this.getLog().warn(message);
                 }
@@ -494,7 +602,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
         {
             this.getLog().error(messageBuilder);
         }
-        else
+        else if (this.reportInconsistentMessageKeys)
         {
             this.getLog().warn(messageBuilder);
         }
