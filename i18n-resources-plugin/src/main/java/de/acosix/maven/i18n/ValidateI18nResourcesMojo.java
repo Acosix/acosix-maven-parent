@@ -400,7 +400,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
             final Map<Locale, String> localeLabels) throws MojoExecutionException
     {
         final Pattern nonAsciiCharacterPattern = Pattern.compile("[^\\x00-\\x7F]");
-        final Pattern invalidUnicodeEscapeSequencePattern = Pattern.compile("\\\\u[^0-9a-fA-F]{1,4}");
+        final Pattern invalidUnicodeEscapeSequencePattern = Pattern.compile("\\\\u(?![0-9a-fA-F]{4}).{4}");
 
         for (final Locale locale : allLocales)
         {
@@ -411,7 +411,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                 final File file = filesByBasePathEntry.getValue();
 
                 // need to custom load the file contents as regular Properties / ResourceBundle already decode escape sequences
-                try (BufferedReader bf = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)))
+                try (BufferedReader bf = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.ISO_8859_1)))
                 {
                     final PropertiesLineReader lineReader = new PropertiesLineReader(bf);
 
@@ -426,8 +426,9 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                         {
                             encodingIssues.incrementAndGet();
 
+                            final String character = nonAsciiMatcher.group();
                             final String logMessage = basePath + " for locale " + localeLabels.get(locale)
-                                    + " contains non-ASCII character " + nonAsciiMatcher.group() + " in (logical) line no " + logicalLineNo;
+                                    + " contains non-ASCII character " + character + " in (logical) line no " + logicalLineNo;
                             if (this.failOnEncodingIssues)
                             {
                                 this.getLog().error(logMessage);
