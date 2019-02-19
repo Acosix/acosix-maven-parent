@@ -53,5 +53,5 @@ boolean findBuildLogMessage(File basedir, String message)
     return messageFound;
 }
 
-return findBuildLogMessage(basedir, "[ERROR] test for locale de contains ivalid unicode escape sequence \\u00g4 in (logical) line no 1")
+return findBuildLogMessage(basedir, "[ERROR] test for de contains ivalid unicode escape sequence \\u00g4 in (logical) line no 1")
     && findBuildLogMessage(basedir, "Some resource bundles contain non-ASCII characters or incorrect unicode escape sequences");

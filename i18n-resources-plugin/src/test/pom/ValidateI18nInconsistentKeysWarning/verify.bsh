@@ -53,4 +53,5 @@ boolean findBuildLogMessage(File basedir, String message)
     return messageFound;
 }
 
-return findBuildLogMessage(basedir, "[WARNING] test key key3 not defined in root bundle but found in bundles for en");
+return findBuildLogMessage(basedir, "[WARNING] test key key3 defined in root bundle but not found in bundles for en")
+    && findBuildLogMessage(basedir, "[WARNING] test key key4 not defined in root bundle but found in bundles for en");

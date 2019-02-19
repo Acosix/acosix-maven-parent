@@ -26,6 +26,7 @@
     </parent>
 
     <artifactId>i18n-resources-plugin</artifactId>
+    <version>1.0.1</version>
     <packaging>maven-plugin</packaging>
 
     <name>Acosix I18n Resources Plugin</name>

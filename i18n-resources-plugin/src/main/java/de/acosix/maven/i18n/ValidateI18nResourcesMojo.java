@@ -427,7 +427,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                             encodingIssues.incrementAndGet();
 
                             final String character = nonAsciiMatcher.group();
-                            final String logMessage = basePath + " for locale " + localeLabels.get(locale)
+                            final String logMessage = basePath + " for " + localeLabels.get(locale)
                                     + " contains non-ASCII character " + character + " in (logical) line no " + logicalLineNo;
                             if (this.failOnEncodingIssues)
                             {
@@ -444,7 +444,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                         {
                             encodingIssues.incrementAndGet();
 
-                            final String logMessage = basePath + " for locale " + localeLabels.get(locale)
+                            final String logMessage = basePath + " for " + localeLabels.get(locale)
                                     + " contains ivalid unicode escape sequence " + invalidUnicodeEscapeSequenceMatcher.group()
                                     + " in (logical) line no " + logicalLineNo;
                             if (this.failOnEncodingIssues)
@@ -520,7 +520,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
 
         for (final Entry<String, List<Locale>> localesByMissingKey : localesByMissingKeys.entrySet())
         {
-            this.logResourceBundleInconsistency(basePath, localesByMissingKey.getKey(), false, localesByMissingKey.getValue());
+            this.logResourceBundleInconsistency(basePath, localesByMissingKey.getKey(), true, localesByMissingKey.getValue());
             inconsistentMessageKeys.incrementAndGet();
         }
 
