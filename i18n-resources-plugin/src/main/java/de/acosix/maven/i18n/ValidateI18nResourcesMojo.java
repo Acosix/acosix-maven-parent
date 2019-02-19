@@ -410,6 +410,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                 final String basePath = filesByBasePathEntry.getKey();
                 final File file = filesByBasePathEntry.getValue();
 
+                this.getLog().debug("Reading properties file " + file);
                 // need to custom load the file contents as regular Properties / ResourceBundle already decode escape sequences
                 try (BufferedReader bf = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.ISO_8859_1)))
                 {
@@ -543,6 +544,7 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
             if (localeFilesByBasePath != null && localeFilesByBasePath.containsKey(basePath))
             {
                 final File file = localeFilesByBasePath.get(basePath);
+                this.getLog().debug("Reading bundle " + file);
                 try (InputStream is = new FileInputStream(file))
                 {
                     final ResourceBundle bundle = new PropertyResourceBundle(is);

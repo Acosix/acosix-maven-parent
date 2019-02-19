@@ -56,21 +56,18 @@ public class PropertiesLineReader
                 {
                     int lineStartIdx = 0;
                     char c = lineFromFile.charAt(lineStartIdx);
-                    while (c == ' ' || c == '\t' || c == '\f')
+                    while ((c == ' ' || c == '\t' || c == '\f') && lineStartIdx + 1 < lineFromFile.length())
                     {
                         c = lineFromFile.charAt(++lineStartIdx);
                     }
 
-                    if (lineStartIdx > 0)
+                    if (c == ' ' || c == '\t' || c == '\f')
                     {
-                        if (lineStartIdx < lineFromFile.length())
-                        {
-                            lineFromFile = lineFromFile.substring(lineStartIdx);
-                        }
-                        else
-                        {
-                            lineFromFile = "";
-                        }
+                        lineFromFile = "";
+                    }
+                    else if (lineStartIdx > 0)
+                    {
+                        lineFromFile = lineFromFile.substring(lineStartIdx);
                     }
                 }
 
