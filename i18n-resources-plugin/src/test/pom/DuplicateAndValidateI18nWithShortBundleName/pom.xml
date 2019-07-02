@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.acosix.maven.test</groupId>
-    <artifactId>validateI18nWithUmlaut</artifactId>
+    <artifactId>duplicateAndValidateI18nWithShortBundleName</artifactId>
     <version>1.0.0.0-SNAPSHOT</version>
     
     <build>
@@ -28,8 +28,10 @@
                 <groupId>de.acosix.maven</groupId>
                 <artifactId>i18n-resources-plugin</artifactId>
                 <configuration>
+                    <sourceDirectory>${basedir}/src/main/messages</sourceDirectory>
                     <validationDirectories>
                         <validationDirectory>${basedir}/src/main/messages</validationDirectory>
+                        <validationDirectory>${project.build.directory}/i18n-resources</validationDirectory>
                     </validationDirectories>
                     <includes>
                         <include>*.properties</include>
@@ -37,7 +39,9 @@
                     <requiredLocales>
                         <requiredLocale>en</requiredLocale>
                     </requiredLocales>
-                    <failOnEncodingIssues>true</failOnEncodingIssues>
+                    <copyForLocales>
+                        <copyForLocale>en</copyForLocale>
+                    </copyForLocales>
                 </configuration>
             </plugin>
         </plugins>

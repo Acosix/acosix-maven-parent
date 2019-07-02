@@ -244,19 +244,11 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                                 : "";
                         final String fileBaseName = fileName.substring(0, fileName.length() - PROPERTIES_EXTENSION.length());
 
-                        final StringBuilder localeBuilder = new StringBuilder(16);
-                        String resourceName = fileBaseName;
-                        while (resourceName.lastIndexOf('_') == resourceName.length() - 3 && localeBuilder.length() < 8)
-                        {
-                            final String fragment = resourceName.substring(resourceName.lastIndexOf('_') + 1);
-                            resourceName = resourceName.substring(0, resourceName.lastIndexOf('_'));
-                            if (localeBuilder.length() != 0)
-                            {
-                                localeBuilder.insert(0, '-');
-                            }
-                            localeBuilder.insert(0, fragment);
-                        }
-                        final String basePath = relativeBasePath + resourceName;
+                        final StringBuilder localeBuilder = new StringBuilder();
+                        final StringBuilder basePathBuilder = new StringBuilder(relativeBasePath);
+
+                        ResourcesPluginUtilities.extractBaseResourceNameAndLocaleFromFileName(fileBaseName, basePathBuilder, localeBuilder);
+                        final String basePath = basePathBuilder.toString();
 
                         Locale locale;
                         if (localeBuilder.length() > 0)
@@ -428,8 +420,8 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
                             encodingIssues.incrementAndGet();
 
                             final String character = nonAsciiMatcher.group();
-                            final String logMessage = basePath + " for " + localeLabels.get(locale)
-                                    + " contains non-ASCII character " + character + " in (logical) line no " + logicalLineNo;
+                            final String logMessage = basePath + " for " + localeLabels.get(locale) + " contains non-ASCII character "
+                                    + character + " in (logical) line no " + logicalLineNo;
                             if (this.failOnEncodingIssues)
                             {
                                 this.getLog().error(logMessage);

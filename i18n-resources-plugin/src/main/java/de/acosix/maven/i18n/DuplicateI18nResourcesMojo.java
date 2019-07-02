@@ -141,17 +141,10 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
         final String fileBaseName = fileName.substring(0, fileName.length() - PROPERTIES_EXTENSION.length());
 
         final StringBuilder localeBuilder = new StringBuilder();
-        String resourceName = fileBaseName;
-        while (resourceName.lastIndexOf('_') == resourceName.length() - 3 && localeBuilder.length() < 8)
-        {
-            final String fragment = resourceName.substring(resourceName.lastIndexOf('_') + 1);
-            resourceName = resourceName.substring(0, resourceName.lastIndexOf('_'));
-            if (localeBuilder.length() != 0)
-            {
-                localeBuilder.insert(0, '_');
-            }
-            localeBuilder.insert(0, fragment);
-        }
+        final StringBuilder resourceNameBuilder = new StringBuilder();
+
+        ResourcesPluginUtilities.extractBaseResourceNameAndLocaleFromFileName(fileBaseName, resourceNameBuilder, localeBuilder);
+        final String resourceName = resourceNameBuilder.toString();
 
         if ((this.sourceLocale == null && localeBuilder.length() == 0)
                 || (this.sourceLocale != null && this.sourceLocale.equals(localeBuilder.toString())))

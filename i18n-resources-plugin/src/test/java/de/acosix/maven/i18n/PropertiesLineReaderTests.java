@@ -23,13 +23,10 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.BlockJUnit4ClassRunner;
 
 /**
  * @author Axel Faust
  */
-@RunWith(BlockJUnit4ClassRunner.class)
 public class PropertiesLineReaderTests
 {
 
