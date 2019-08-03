@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.acosix.maven</groupId>
     <artifactId>acosix-maven-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Acosix Maven Parent</name>
     <description>Parent POM for all generic Acosix Maven projects</description>
@@ -63,22 +63,25 @@
         <maven.compiler.target>1.7</maven.compiler.target>
 
         <maven.enforcer.version>1.4.1</maven.enforcer.version>
-        <maven.compiler.version>3.6.1</maven.compiler.version>
-        <maven.source.version>3.0.1</maven.source.version>
-        <maven.javadoc.version>2.10.4</maven.javadoc.version>
-        <maven.jar.version>3.0.2</maven.jar.version>
-        <maven.resources.version>3.0.1</maven.resources.version>
-        <maven.toolchain.version>1.1</maven.toolchain.version>
-        <maven.forbiddenapis.version>2.2</maven.forbiddenapis.version>
+        <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.source.version>3.1.0</maven.source.version>
+        <maven.javadoc.version>3.1.1</maven.javadoc.version>
+        <maven.jar.version>3.1.2</maven.jar.version>
+        <maven.resources.version>3.1.2</maven.resources.version>
+        <maven.toolchain.version>3.0.0</maven.toolchain.version>
+        <maven.forbiddenapis.version>2.6</maven.forbiddenapis.version>
         <maven.findbugs.version>3.0.4</maven.findbugs.version>
-        <maven.surefire.version>2.21.0</maven.surefire.version>
+        <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven.invoker.version>3.2.0</maven.invoker.version>
 
-        <maven.oss.staging.version>1.6.7</maven.oss.staging.version>
+        <maven.oss.staging.version>1.6.8</maven.oss.staging.version>
 
         <maven.plugin.version>3.5</maven.plugin.version>
         <maven.plugin.api.version>${maven.plugin.version}.0</maven.plugin.api.version>
         <maven.artifact.version>${maven.plugin.version}.0</maven.artifact.version>
+        <maven.core.version>${maven.plugin.version}.0</maven.core.version>
+        <maven.compat.version>${maven.plugin.version}.0</maven.compat.version>
+        <maven.model.version>${maven.plugin.version}.0</maven.model.version>
 
         <sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
     </properties>
@@ -116,6 +119,7 @@
 
     <modules>
         <module>i18n-resources-plugin</module>
+        <module>jshint-plugin</module>
     </modules>
 
     <dependencyManagement>
@@ -181,7 +185,6 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-toolchains-plugin</artifactId>
                     <version>${maven.toolchain.version}</version>
                     <executions>

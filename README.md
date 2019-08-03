@@ -5,7 +5,10 @@ This project aggregates any universally-useful Maven plugins, definitions or oth
 
 # Use in projects
 
-TBD
+Details concerning the usage of the Maven plugin usage can be found in their respective README files:
+
+* [i18n-resources-plugin](./i18n-resources-plugin/README.md)
+* [jshint-plugin](./jshint-plugin/README.md)
 
 ## Using SNAPSHOT builds
 
