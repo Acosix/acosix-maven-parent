@@ -1,4 +1,4 @@
-#!/usr/bin/env rhino
+//#!/usr/bin/env rhino
 var window = {};
 /*! 2.13.6 */
 var JSHINT;
