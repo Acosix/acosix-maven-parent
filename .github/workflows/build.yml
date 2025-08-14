@@ -10,4 +10,12 @@ jobs:
             distribution: 'temurin'
             java-version: '8'
             cache: maven
+      - run: mvn -version
       - run: mvn --batch-mode --update-snapshots verify
+      - name: Archive integration test build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: it-logs
+          retention-days: 5
+          path: /home/runner/work/acosix-maven-parent/acosix-maven-parent/*/target/its/*/build.log
