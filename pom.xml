@@ -86,6 +86,8 @@
         <maven.core.version>${maven.plugin.version}.0</maven.core.version>
         <maven.compat.version>${maven.plugin.version}.0</maven.compat.version>
         <maven.model.version>${maven.plugin.version}.0</maven.model.version>
+        
+        <plexus.utils.version>4.0.2</plexus.utils.version>
     </properties>
 
     <repositories>
@@ -127,9 +129,38 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-artifact</artifactId>
+                <version>${maven.artifact.version}</version>
+                <scope>provided</scope>
+            </dependency>
+    
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven.plugin.api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+    
+            <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>${maven.plugin.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-utils</artifactId>
+                <version>${plexus.utils.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <!-- Maven 3.9 stops exposing plexus-utils implicitly -->
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.12</version>
+                <version>4.13.2</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -154,7 +185,7 @@
                             <configuration>
                                 <rules>
                                     <requireMavenVersion>
-                                        <version>[3.5,)</version>
+                                        <version>[3.9,)</version>
                                     </requireMavenVersion>
                                 </rules>
                             </configuration>
