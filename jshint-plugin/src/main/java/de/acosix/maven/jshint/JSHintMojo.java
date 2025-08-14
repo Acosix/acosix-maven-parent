@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2019 Acosix GmbH
+ * Copyright 2016 - 2025 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,21 @@ package de.acosix.maven.jshint;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -43,8 +43,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * This Mojo provides a goal to run a JSHint validation of JavaScript sources files in the current project during the "processSources"
@@ -139,7 +137,7 @@ public class JSHintMojo extends AbstractMojo
     /**
      * The version of the embedded JSHint script to use. This setting is ignored if {@link #jshintScript} is set.
      */
-    @Parameter(defaultValue = "2.9.3", property = "jshintVersion", required = true)
+    @Parameter(defaultValue = "2.13.6", property = "jshintVersion", required = true)
     protected String jshintVersion;
 
     /**
@@ -166,7 +164,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param baseDirectory
-     *            the baseDirectory to set
+     *     the baseDirectory to set
      */
     public void setBaseDirectory(final String baseDirectory)
     {
@@ -175,7 +173,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param baseDirectory
-     *            the baseDirectory to set
+     *     the baseDirectory to set
      */
     public void setBaseDirectory(final File baseDirectory)
     {
@@ -184,7 +182,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param sourceDirectory
-     *            the sourceDirectory to set
+     *     the sourceDirectory to set
      */
     public void setSourceDirectory(final String sourceDirectory)
     {
@@ -193,7 +191,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param sourceDirectory
-     *            the sourceDirectory to set
+     *     the sourceDirectory to set
      */
     public void setSourceDirectory(final File sourceDirectory)
     {
@@ -202,7 +200,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param jsHintDefaultConfigFile
-     *            the jsHintDefaultConfigFile to set
+     *     the jsHintDefaultConfigFile to set
      */
     public void setJsHintDefaultConfigFile(final String jsHintDefaultConfigFile)
     {
@@ -211,7 +209,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param includes
-     *            the includes to set
+     *     the includes to set
      */
     public void setIncludes(final List<String> includes)
     {
@@ -220,7 +218,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param excludes
-     *            the excludes to set
+     *     the excludes to set
      */
     public void setExcludes(final List<String> excludes)
     {
@@ -229,7 +227,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param failOnError
-     *            the failOnError to set
+     *     the failOnError to set
      */
     public void setFailOnError(final boolean failOnError)
     {
@@ -238,7 +236,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param preferRhino
-     *            the preferRhino to set
+     *     the preferRhino to set
      */
     public void setPreferRhino(final boolean preferRhino)
     {
@@ -247,7 +245,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param ignoreJSHintIgnoreFiles
-     *            the ignoreJSHintIgnoreFiles to set
+     *     the ignoreJSHintIgnoreFiles to set
      */
     public void setIgnoreJSHintIgnoreFiles(final boolean ignoreJSHintIgnoreFiles)
     {
@@ -256,7 +254,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param ignoreJSHintConfigFiles
-     *            the ignoreJSHintConfigFiles to set
+     *     the ignoreJSHintConfigFiles to set
      */
     public void setIgnoreJSHintConfigFiles(final boolean ignoreJSHintConfigFiles)
     {
@@ -265,7 +263,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param jshintVersion
-     *            the jshintVersion to set
+     *     the jshintVersion to set
      */
     public void setJshintVersion(final String jshintVersion)
     {
@@ -274,7 +272,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param jshintScript
-     *            the jshintScript to set
+     *     the jshintScript to set
      */
     public void setJshintScript(final String jshintScript)
     {
@@ -283,7 +281,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param checkstyleReportFile
-     *            the checkstyleReportFile to set
+     *     the checkstyleReportFile to set
      */
     public void setCheckstyleReportFile(final String checkstyleReportFile)
     {
@@ -292,7 +290,7 @@ public class JSHintMojo extends AbstractMojo
 
     /**
      * @param skip
-     *            the skip to set
+     *     the skip to set
      */
     public void setSkip(final boolean skip)
     {
@@ -318,7 +316,7 @@ public class JSHintMojo extends AbstractMojo
 
             final JSHinter hinter;
 
-            if (this.jshintScript != null)
+            if (this.jshintScript != null && !this.jshintScript.trim().isEmpty())
             {
                 final File scriptFile = new File(this.baseDirectory, this.jshintScript);
                 if (scriptFile.isFile() && scriptFile.exists())
@@ -387,7 +385,7 @@ public class JSHintMojo extends AbstractMojo
 
     protected void writeReports(final Map<String, List<Error>> errorsByFile)
     {
-        if (StringUtils.isNotBlank(this.checkstyleReportFile))
+        if (this.checkstyleReportFile != null && !this.checkstyleReportFile.trim().isEmpty())
         {
             if (this.getLog().isDebugEnabled())
             {
@@ -405,21 +403,15 @@ public class JSHintMojo extends AbstractMojo
                 parentDirectory.mkdirs();
             }
 
-            OutputStream os = null;
-            try
+            try (OutputStream os = Files.newOutputStream(checkstyleReportFile.toPath(), StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING))
             {
-                os = new FileOutputStream(checkstyleReportFile, false);
-
                 final CheckstyleJSHintReporter checkstyleJSHintReporter = new CheckstyleJSHintReporter();
                 checkstyleJSHintReporter.generateReport(errorsByFile, os);
             }
             catch (final IOException ioex)
             {
                 throw new RuntimeException(new MojoExecutionException("Failed to write checkstyle report file", ioex));
-            }
-            finally
-            {
-                IOUtil.close(os);
             }
         }
     }
@@ -440,19 +432,23 @@ public class JSHintMojo extends AbstractMojo
             final URL jsHintDefaultConfigResource = JSHintMojo.class.getClassLoader().getResource(this.jsHintDefaultConfigFile);
             if (jsHintDefaultConfigResource != null)
             {
-                Reader jsHintConfigReader = null;
-                InputStream is = null;
-                try
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(jsHintDefaultConfigResource.openStream(), StandardCharsets.UTF_8)))
                 {
-                    is = jsHintDefaultConfigResource.openStream();
-                    jsHintConfigReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-                    defaultJSHintConfigContent = IOUtil.toString(jsHintConfigReader);
+                    String line;
+                    final StringBuilder sb = new StringBuilder(1024);
+                    while ((line = reader.readLine()) != null)
+                    {
+                        if (sb.length() > 0)
+                        {
+                            sb.append('\n');
+                        }
+                        sb.append(line);
+                    }
+                    defaultJSHintConfigContent = sb.toString();
                 }
                 catch (final IOException ioex)
                 {
-                    IOUtil.close(jsHintConfigReader);
-                    IOUtil.close(is);
-
                     throw new RuntimeException(
                             new MojoExecutionException("Error reading default JSHint config from " + this.jsHintDefaultConfigFile, ioex));
                 }
@@ -478,19 +474,13 @@ public class JSHintMojo extends AbstractMojo
         }
         else
         {
-            Reader jsHintConfigReader = null;
-            FileInputStream fis = null;
             try
             {
-                fis = new FileInputStream(jsHintDefaultConfigFile);
-                jsHintConfigReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
-                defaultJSHintConfigContent = IOUtil.toString(jsHintConfigReader);
+                defaultJSHintConfigContent = Files.readAllLines(jsHintDefaultConfigFile.toPath()).stream()
+                        .collect(Collectors.joining("\n"));
             }
             catch (final IOException ioex)
             {
-                IOUtil.close(jsHintConfigReader);
-                IOUtil.close(fis);
-
                 throw new RuntimeException(
                         new MojoExecutionException("Error reading default JSHint config file" + this.jsHintDefaultConfigFile, ioex));
             }
@@ -576,20 +566,13 @@ public class JSHintMojo extends AbstractMojo
                 path = null;
             }
 
-            FileInputStream fin = null;
-            InputStreamReader isr = null;
-            BufferedReader reader = null;
             try
             {
-                final File jshintIgnoreFile = new File(this.sourceDirectory, jshintIgnore);
-                fin = new FileInputStream(jshintIgnoreFile);
-                isr = new InputStreamReader(fin, StandardCharsets.UTF_8);
-                reader = new BufferedReader(isr);
-
-                String line = null;
-                while ((line = reader.readLine()) != null)
+                final Path ignorePath = this.sourceDirectory.toPath().resolve(jshintIgnore);
+                final List<String> lines = Files.readAllLines(ignorePath);
+                for (final String line : lines)
                 {
-                    if (!StringUtils.isBlank(line))
+                    if (line != null && !line.trim().isEmpty())
                     {
                         excludesFromFile.add(line);
                         if (path != null)
@@ -605,18 +588,12 @@ public class JSHintMojo extends AbstractMojo
 
                 if (this.getLog().isDebugEnabled())
                 {
-                    this.getLog().debug(MessageFormat.format("Loaded exclusion patterns {0} from {1}", excludesFromFile, jshintIgnoreFile));
+                    this.getLog().debug(MessageFormat.format("Loaded exclusion patterns {0} from {1}", excludesFromFile, ignorePath));
                 }
             }
             catch (final IOException ioex)
             {
                 throw new RuntimeException(new MojoExecutionException("Error loading .jshintignore", ioex));
-            }
-            finally
-            {
-                IOUtil.close(reader);
-                IOUtil.close(isr);
-                IOUtil.close(fin);
             }
         }
 

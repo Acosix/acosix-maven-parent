@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2019 Acosix GmbH
+ Copyright 2019 - 2025 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@
     <parent>
         <groupId>de.acosix.maven</groupId>
         <artifactId>acosix-maven-parent</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>i18n-resources-plugin</artifactId>
-    <version>1.0.4</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Acosix I18n Resources Plugin</name>
@@ -67,12 +67,14 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
             <version>${maven.artifact.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>${maven.plugin.api.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -95,6 +97,9 @@
             </plugin>
             <plugin>
                 <artifactId>maven-plugin-plugin</artifactId>
+                <configuration>
+                    <goalPrefix>i18n</goalPrefix>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-descriptor</id>

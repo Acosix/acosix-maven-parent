@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2019 Acosix GmbH
+ * Copyright 2016 - 2025 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import javax.script.ScriptException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
@@ -47,7 +46,7 @@ public class NashornJSHinter extends AbstractJSHinter
     {
         super(log);
 
-        if (StringUtils.isBlank(versionOrResourcePath))
+        if (versionOrResourcePath == null || versionOrResourcePath.trim().isEmpty())
         {
             throw new IllegalArgumentException("versionOrResourcePath not provided");
         }

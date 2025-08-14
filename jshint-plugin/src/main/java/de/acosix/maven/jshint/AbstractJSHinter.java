@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2019 Acosix GmbH
+ * Copyright 2016 - 2025 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,17 @@ package de.acosix.maven.jshint;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
@@ -65,12 +62,12 @@ public abstract class AbstractJSHinter implements JSHinter
             throw new IllegalArgumentException("baseDirectory not provided");
         }
 
-        if (StringUtils.isBlank(path))
+        if (path == null || path.trim().isEmpty())
         {
             throw new IllegalArgumentException("path not provided");
         }
 
-        if (StringUtils.isBlank(defaultJSHintConfigContent))
+        if (defaultJSHintConfigContent == null || defaultJSHintConfigContent.trim().isEmpty())
         {
             throw new IllegalArgumentException("defaultJSHintConfigContent not provided");
         }
@@ -85,7 +82,7 @@ public abstract class AbstractJSHinter implements JSHinter
         else
         {
             effectiveJSHintConfigContent = this.lookupCustomJSHintConfig(baseDirectory, path);
-            if (StringUtils.isBlank(effectiveJSHintConfigContent))
+            if (effectiveJSHintConfigContent == null || effectiveJSHintConfigContent.trim().isEmpty())
             {
                 effectiveJSHintConfigContent = defaultJSHintConfigContent;
             }
@@ -109,16 +106,8 @@ public abstract class AbstractJSHinter implements JSHinter
     {
         final List<String> sourceLines = new ArrayList<>();
 
-        FileInputStream fin = null;
-        InputStreamReader isr = null;
-        BufferedReader reader = null;
-        try
+        try (BufferedReader reader = Files.newBufferedReader(baseDirectory.toPath().resolve(path)))
         {
-            final File jshintIgnoreFile = new File(baseDirectory, path);
-            fin = new FileInputStream(jshintIgnoreFile);
-            isr = new InputStreamReader(fin, StandardCharsets.UTF_8);
-            reader = new BufferedReader(isr);
-
             String line = null;
             while ((line = reader.readLine()) != null)
             {
@@ -128,12 +117,6 @@ public abstract class AbstractJSHinter implements JSHinter
         catch (final IOException ioex)
         {
             throw new RuntimeException(new MojoExecutionException("Error loading " + baseDirectory + File.separator + path, ioex));
-        }
-        finally
-        {
-            IOUtil.close(reader);
-            IOUtil.close(isr);
-            IOUtil.close(fin);
         }
 
         return sourceLines;
@@ -199,22 +182,13 @@ public abstract class AbstractJSHinter implements JSHinter
     {
         final String source;
 
-        FileInputStream fin = null;
-        InputStreamReader isr = null;
         try
         {
-            fin = new FileInputStream(contentFile);
-            isr = new InputStreamReader(fin, StandardCharsets.UTF_8);
-            source = IOUtil.toString(isr);
+            source = Files.readAllLines(contentFile.toPath()).stream().collect(Collectors.joining("\n"));
         }
         catch (final IOException ioex)
         {
             throw new RuntimeException(new MojoExecutionException("Error loading " + contentFile.toPath(), ioex));
-        }
-        finally
-        {
-            IOUtil.close(isr);
-            IOUtil.close(fin);
         }
 
         return source;

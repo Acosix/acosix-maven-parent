@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2019 Acosix GmbH
+ * Copyright 2016 - 2025 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.NativeJavaObject;
@@ -53,7 +51,7 @@ public class RhinoJSHinter extends AbstractJSHinter
     {
         super(log);
 
-        if (StringUtils.isBlank(versionOrResourcePath))
+        if (versionOrResourcePath == null || versionOrResourcePath.trim().isEmpty())
         {
             throw new IllegalArgumentException("versionOrResourcePath not provided");
         }
@@ -176,26 +174,16 @@ public class RhinoJSHinter extends AbstractJSHinter
         if (this.jshintScript instanceof URL)
         {
             final URL jshintScriptURL = (URL) this.jshintScript;
-            final InputStream scriptInputStream = jshintScriptURL.openStream();
-            try
+            try (InputStream scriptInputStream = jshintScriptURL.openStream())
             {
                 jshintScript = this.compileScript(cx, jshintScriptURL.toExternalForm(), scriptInputStream);
-            }
-            finally
-            {
-                IOUtil.close(scriptInputStream);
             }
         }
         else if (this.jshintScript instanceof File)
         {
-            final InputStream scriptInputStream = new FileInputStream((File) this.jshintScript);
-            try
+            try (InputStream scriptInputStream = new FileInputStream((File) this.jshintScript))
             {
                 jshintScript = this.compileScript(cx, ((File) this.jshintScript).getAbsolutePath(), scriptInputStream);
-            }
-            finally
-            {
-                IOUtil.close(scriptInputStream);
             }
         }
         else
@@ -208,15 +196,10 @@ public class RhinoJSHinter extends AbstractJSHinter
 
     protected Script compileInternalScriptScript(final Context cx, final String scriptName) throws IOException
     {
-        final InputStream scriptInputStream = RhinoJSHinter.class.getResourceAsStream(scriptName);
-        try
+        try (InputStream scriptInputStream = RhinoJSHinter.class.getResourceAsStream(scriptName))
         {
             final Script script = this.compileScript(cx, scriptName, scriptInputStream);
             return script;
-        }
-        finally
-        {
-            IOUtil.close(scriptInputStream);
         }
     }
 
