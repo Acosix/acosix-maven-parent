@@ -83,24 +83,18 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
      * Specifies the directories used for looking up the effective set of resources bundles for validation. Since individual resource
      * bundles may have been generated as part of other build steps, this option allows to configure multiple directories in order to
      * support a single aggregated validation run. If not configured, {@code ${basedir}/src/main} will be used as the base directory.
-     *
-     * @parameter
      */
     @Parameter
     protected List<File> validationDirectories;
 
     /**
      * Specifies inclusion patterns to select which resource files should be processed.
-     *
-     * @parameter
      */
     @Parameter
     protected List<String> includes;
 
     /**
      * Specifies exclusion patterns to select which resource files should not be processed.
-     *
-     * @parameter
      */
     @Parameter
     protected List<String> excludes;
@@ -109,8 +103,6 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
      * Specifies all locales for which resource bundles must exist. If specified and at least one resource bundles does not contain
      * localised properties files for all the required locales, this Mojo will consider this an error and not allow the build to proceed
      * after the validation has completed. The generic default locale is always considered tobe required.
-     *
-     * @parameter
      */
     @Parameter
     protected List<String> requiredLocales;
@@ -118,8 +110,6 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
     /**
      * Specifies the validation should report if a locale - for which at least one (other) resource bundle has been defined - is missing a
      * specific message bundle defined for other locales.
-     *
-     * @parameter
      */
     @Parameter(defaultValue = "true")
     protected boolean reportMissingLocaleBundles;
@@ -134,8 +124,6 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
     /**
      * Specifies if inconsistent message keys should be reported. Message keys are considered inconsistent if message bundles of different
      * locales do not all share the same set of keys.
-     *
-     * @parameter
      */
     @Parameter(defaultValue = "true")
     protected boolean reportInconsistentMessageKeys;
@@ -150,8 +138,6 @@ public class ValidateI18nResourcesMojo extends AbstractMojo
     /**
      * Specifies if the presence of encoding issues (non-ASCII characters / incorrect unicode escape sequences) in resource bundles should
      * be reported.
-     *
-     * @parameter
      */
     @Parameter(defaultValue = "true")
     protected boolean reportEncodingIssues;

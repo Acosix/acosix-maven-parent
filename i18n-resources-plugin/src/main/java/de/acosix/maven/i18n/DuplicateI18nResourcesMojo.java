@@ -56,8 +56,6 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
     /**
      * Specifies the source directory used for looking up resources bundles to duplicate as well as checking if a specific resource bundle
      * for a target locale actually already exists as an explicit source file and can be excluded from being created as a copy.
-     *
-     * @parameter
      */
     @Parameter(defaultValue = "${basedir}/src/main", required = true)
     protected File sourceDirectory;
@@ -70,24 +68,18 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
 
     /**
      * Specifies inclusion patterns to select which resource files should be processed.
-     *
-     * @parameter
      */
     @Parameter
     protected List<String> includes;
 
     /**
      * Specifies exclusion patterns to select which resource files should not be processed.
-     *
-     * @parameter
      */
     @Parameter
     protected List<String> excludes;
 
     /**
      * Specifies the locale to use when creating a copy in a specific target locale that does not already have an explicit resource file.
-     *
-     * @parameter
      */
     @Parameter
     protected String sourceLocale;
@@ -95,8 +87,6 @@ public class DuplicateI18nResourcesMojo extends AbstractMojo
     /**
      * Specifies all the locales for which resource bundles should be created as copies (unless explicit files for individual bundles
      * already exist).
-     *
-     * @parameter
      */
     @Parameter(required = true)
     protected List<String> copyForLocales;

@@ -1,0 +1,10 @@
+.settings/
+bin/
+.project
+.classpath
+target/
+alfresco.log
+alfresco.log.*
+.idea/
+*.iml
+*.iws

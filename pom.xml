@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.acosix.maven</groupId>
     <artifactId>acosix-maven-parent</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
     <name>Acosix Maven Parent</name>
     <description>Parent POM for all generic Acosix Maven projects</description>
@@ -87,6 +87,9 @@
         <maven.gpg.version>3.2.8</maven.gpg.version>
         <maven.deploy.version>3.1.4</maven.deploy.version>
         <maven.invoker.version>3.9.1</maven.invoker.version>
+
+        <!-- we use the Sonatype plugin for deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
 
         <maven.sonatype.central.version>0.8.0</maven.sonatype.central.version>
 
@@ -437,6 +440,15 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
     </build>
 
     <profiles>
